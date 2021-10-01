@@ -5,7 +5,10 @@
 #include <errno.h>
 #include <signal.h>
 #include <unistd.h>
+#include <sys/mman.h>
 #include <sys/syscall.h>
+#include <sys/resource.h>
+#include "kernel_err.h"
 
 #ifdef __alpha__
 /*
@@ -98,5 +101,50 @@ static inline int ____sys_io_uring_enter(int fd, unsigned to_submit,
 	return ____sys_io_uring_enter2(fd, to_submit, min_complete, flags, sig,
 				       _NSIG / 8);
 }
+
+static inline void *liburing_mmap(void *addr, size_t length, int prot,
+				  int flags, int fd, off_t offset)
+{
+	void *ret;
+
+	ret = mmap(addr, length, prot, flags, fd, offset);
+	if (ret == MAP_FAILED)
+		ret = ERR_PTR(-errno);
+
+	return ret;
+}
+
+static inline int liburing_munmap(void *addr, size_t length)
+{
+	int ret;
+
+	ret = munmap(addr, length);
+	return (ret < 0) ? -errno : ret;
+}
+
+static inline int liburing_madvise(void *addr, size_t length, int advice)
+{
+	int ret;
+
+	ret = madvise(addr, length, advice);
+	return (ret < 0) ? -errno : ret;
+}
+
+static inline int liburing_getrlimit(int resource, struct rlimit *rlim)
+{
+	int ret;
+
+	ret = getrlimit(resource, rlim);
+	return (ret < 0) ? -errno : ret;
+}
+
+static inline int liburing_setrlimit(int resource, const struct rlimit *rlim)
+{
+	int ret;
+
+	ret = setrlimit(resource, rlim);
+	return (ret < 0) ? -errno : ret;
+}
+
 
 #endif

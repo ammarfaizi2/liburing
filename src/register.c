@@ -4,7 +4,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
-#include <sys/resource.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
@@ -107,11 +106,11 @@ static int increase_rlimit_nofile(unsigned nr)
 {
 	struct rlimit rlim;
 
-	if (getrlimit(RLIMIT_NOFILE, &rlim) < 0)
+	if (liburing_getrlimit(RLIMIT_NOFILE, &rlim) < 0)
 		return -errno;
 	if (rlim.rlim_cur < nr) {
 		rlim.rlim_cur += nr;
-		setrlimit(RLIMIT_NOFILE, &rlim);
+		liburing_setrlimit(RLIMIT_NOFILE, &rlim);
 	}
 
 	return 0;
