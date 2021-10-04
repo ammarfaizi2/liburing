@@ -305,6 +305,39 @@ int io_uring_wait_cqes(struct io_uring *ring, struct io_uring_cqe **cqe_ptr,
 	return __io_uring_get_cqe(ring, cqe_ptr, to_submit, wait_nr, sigmask);
 }
 
+int io_uring_submit_and_wait_timout(struct io_uring *ring,
+				    struct io_uring_cqe **cqe_ptr,
+				    unsigned wait_nr,
+				    struct __kernel_timespec *ts,
+				    sigset_t *sigmask)
+{
+	if (uring_likely(ts)) {
+		if (uring_unlikely(!(ring->features & IORING_FEAT_EXT_ARG)))
+			return io_uring_wait_cqes(ring, cqe_ptr, wait_nr,
+						  ts, sigmask);
+		else {
+			struct io_uring_getevents_arg arg = {
+				.sigmask	= (unsigned long) sigmask,
+				.sigmask_sz	= _NSIG / 8,
+				.ts		= (unsigned long) ts
+			};
+			struct get_data data = {
+				.submit		= __io_uring_flush_sq(ring),
+				.wait_nr	= wait_nr,
+				.get_flags	= IORING_ENTER_EXT_ARG,
+				.sz		= sizeof(arg),
+				.arg		= &arg
+			};
+
+			return _io_uring_get_cqe(ring, cqe_ptr, &data);
+		}
+	}
+	else
+		return __io_uring_get_cqe(ring, cqe_ptr,
+					  __io_uring_flush_sq(ring),
+					  wait_nr, sigmask);
+}
+
 /*
  * See io_uring_wait_cqes() - this function is the same, it just always uses
  * '1' as the wait_nr.
