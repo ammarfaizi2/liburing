@@ -118,6 +118,7 @@ test_srcs := \
 	rw_merge_test.c \
 	self.c \
 	sendmsg_fs_cve.c \
+	sendto_recvfrom.c \
 	send_recv.c \
 	send_recvmsg.c \
 	shared-wq.c \
@@ -219,6 +220,7 @@ thread-exit: override LDFLAGS += -lpthread
 ring-leak2: override LDFLAGS += -lpthread
 poll-mshot-update: override LDFLAGS += -lpthread
 exit-no-cleanup: override LDFLAGS += -lpthread
+sendto_recvfrom: override LDFLAGS += -lpthread
 
 install: $(test_targets) runtests.sh runtests-loop.sh
 	$(INSTALL) -D -d -m 755 $(datadir)/liburing-test/
