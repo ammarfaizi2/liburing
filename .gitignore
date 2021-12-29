@@ -60,6 +60,7 @@
 /test/files-exit-hang-timeout
 /test/fixed-link
 /test/fsync
+/test/getdents
 /test/hardlink
 /test/io-cancel
 /test/io_uring_enter
@@ -133,6 +134,7 @@
 /test/submit-link-fail
 /test/exec-target
 /test/skip-cqe
+/test/xattr
 /test/*.dmesg
 /test/output/
 
