@@ -750,6 +750,28 @@ static inline void io_uring_prep_fsetxattr(struct io_uring_sqe *sqe,
 	sqe->xattr_flags = flags;
 }
 
+static inline void io_uring_prep_sendto(struct io_uring_sqe *sqe, int sockfd,
+				      const void *buf, size_t len, int flags,
+				      const struct sockaddr *dest_addr,
+				      socklen_t addrlen)
+{
+	io_uring_prep_rw(IORING_OP_SENDTO, sqe, sockfd, buf, (__u32) len, 0);
+	sqe->msg_flags = (__u32) flags;
+	sqe->addr2 = (__u64) (uintptr_t) dest_addr;
+	sqe->addr3 = (__u64) addrlen;
+}
+
+static inline void io_uring_prep_recvfrom(struct io_uring_sqe *sqe, int sockfd,
+					  void *buf, size_t len, int flags,
+					  struct sockaddr *src_addr,
+					  socklen_t *addrlen)
+{
+	io_uring_prep_rw(IORING_OP_RECVFROM, sqe, sockfd, buf, (__u32) len, 0);
+	sqe->msg_flags = (__u32) flags;
+	sqe->addr2 = (__u64) (uintptr_t) src_addr;
+	sqe->addr3 = (__u64) (uintptr_t) addrlen;
+}
+
 /*
  * Returns number of unconsumed (if SQPOLL) or unsubmitted entries exist in
  * the SQ ring
