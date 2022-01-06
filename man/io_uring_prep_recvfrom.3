@@ -1,0 +1,33 @@
+.\" Copyright (C) 2021 Nugra <richiisei@gmail.com>
+.\"
+.\" SPDX-License-Identifier: LGPL-2.0-or-later
+.\"
+.TH io_uring_prep_recvfrom 3 "December 30, 2021" "liburing-2.1" "liburing Manual"
+.SH NAME
+io_uring_prep_recvfrom   - prepare I/O recvfrom request
+
+.SH SYNOPSIS
+.nf
+.BR "#include <liburing.h>"
+.PP
+.BI "void io_uring_prep_recvfrom(struct io_uring_sqe *sqe, int sockfd,"
+.BI "					   void *buf, size_t len, int flags,
+.BI "					   struct sockaddr *src_addr,"
+.BI "					   socklen_t *addrlen)"
+.SH DESCRIPTION
+The io_uring_prep_recvfrom() prepares receive messages from a socket. The submission queue entry
+.I sqe
+is setup to use the file descriptor
+.I fd
+transmit the request.
+
+After the submission queue entry
+.I sqe
+has been prepared as
+.I recvfrom
+op, it can be submitted with one of the submit functions.
+
+.SH RETURN VALUE
+None
+.SH SEE ALSO
+.BR io_uring_get_sqe (3), io_uring_submit (3)
