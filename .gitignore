@@ -97,6 +97,7 @@
 /test/send_recv
 /test/send_recvmsg
 /test/sendmsg_fs_cve
+/test/sendto_recvfrom
 /test/shared-wq
 /test/short-read
 /test/shutdown
