@@ -22,7 +22,7 @@
 #include <liburing.h>
 
 #define NR_CLIENT_LOOP		1000
-#define NR_CLIENT_ENTRIES	10240
+#define NR_CLIENT_ENTRIES	8192
 #define BUFSIZE			1300
 #define SERVER_BIND_ADDR	"0.0.0.0"
 #define SERVER_BIND_PORT	12345
@@ -111,6 +111,28 @@ static int create_client_socket(void)
 	return sock_fd;
 }
 
+static void *mmap_buffer(size_t len)
+{
+	int err;
+	void *buf;
+
+	buf = mmap(NULL, len, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE,
+		   -1, 0);
+	if (buf == MAP_FAILED) {
+		err = errno;
+		perror("mmap");
+		errno = err;
+		return NULL;
+	}
+
+	err = mlock(buf, BUFSIZE);
+	if (err < 0) {
+		perror("mlock");
+		fprintf(stderr, "Ignoring mlock error...\n");
+	}
+	return buf;
+}
+
 static void *sendto_recvfrom_server_worker(void *ctx_p)
 {
 	struct sockaddr_in src_addr;
@@ -127,18 +149,9 @@ static void *sendto_recvfrom_server_worker(void *ctx_p)
 	int fd;
 
 	ret = -ENOMEM;
-	buf = mmap(NULL, BUFSIZE, PROT_READ|PROT_WRITE,
-		   MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
-	if (buf == MAP_FAILED) {
-		perror("mmap");
+	buf = mmap_buffer(BUFSIZE);
+	if (!buf)
 		goto out;
-	}
-
-	ret = mlock(buf, BUFSIZE);
-	if (ret < 0) {
-		perror("mlock");
-		fprintf(stderr, "Ignoring mlock error...\n");
-	}
 
 	ret = 0;
 	ctx = ctx_p;
@@ -205,18 +218,9 @@ static void *sendto_recvfrom_client_worker(void *ctx_p)
 	int fd;
 
 	ret = -ENOMEM;
-	buf = mmap(NULL, NR_CLIENT_ENTRIES * BUFSIZE, PROT_READ|PROT_WRITE,
-		   MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
-	if (buf == MAP_FAILED) {
-		perror("mmap");
+	buf = mmap_buffer(NR_CLIENT_ENTRIES * BUFSIZE);
+	if (!buf)
 		goto out;
-	}
-
-	ret = mlock(buf, NR_CLIENT_ENTRIES * BUFSIZE);
-	if (ret < 0) {
-		perror("mlock");
-		fprintf(stderr, "Ignoring mlock error...\n");
-	}
 
 	ret = 0;
 	ctx = ctx_p;
@@ -265,12 +269,13 @@ do_burst:
 
 	printf("Client finished!\n");
 	printf("Stopping...\n");
-
 	buf[0][0] = MAGIC_BYTE_STOP;
 	ret = sendto(fd, buf[0], 1, 0, &dst_addr, sizeof(dst_addr));
 	if (ret < 0) {
 		ret = -errno;
 		perror("sendto");
+	} else {
+		ret = 0;
 	}
 
 out_unmap:
@@ -278,6 +283,177 @@ out_unmap:
 out:
 	return (void *) (intptr_t) ret;
 }
+
+static void *sendmsg_recvmsg_server_worker(void *ctx_p)
+{
+	struct sockaddr_in src_addr;
+	struct io_uring_cqe *cqe;
+	struct io_uring_sqe *sqe;
+	struct io_uring *ring;
+	struct app_ctx *ctx;
+	unsigned total_recv;
+	struct msghdr msg;
+	struct iovec iov;
+	unsigned head;
+	char *buf;
+	int tmp;
+	int ret;
+	int fd;
+
+	ret = -ENOMEM;
+	buf = mmap_buffer(BUFSIZE);
+	if (!buf)
+		goto out;
+
+	ret = 0;
+	ctx = ctx_p;
+	fd = ctx->server_fd;
+	ring = &ctx->server_ring;
+	total_recv = 0;
+	memset(&msg, 0, sizeof(msg));
+
+	while (true) {
+		sqe = io_uring_get_sqe(ring);
+		if (!sqe) {
+			/* Should not be possible. */
+			ret = -EAGAIN;
+			break;
+		}
+
+		msg.msg_name = &src_addr;
+		msg.msg_namelen = sizeof(src_addr);
+		msg.msg_iov = &iov;
+		msg.msg_iovlen = 1;
+		iov.iov_base = buf;
+		iov.iov_len = BUFSIZE;
+		io_uring_prep_recvmsg(sqe, fd, &msg, 0);
+
+		tmp = io_uring_submit_and_wait(ring, 1);
+		if (tmp <= 0) {
+			fprintf(stderr, "Server submit failed: %d\n", tmp);
+			ret = tmp;
+			break;
+		}
+
+		io_uring_for_each_cqe(ring, head, cqe) {
+			total_recv++;
+			ret = cqe->res;
+			if (ret < 0) {
+				fprintf(stderr, "recvfrom error: %s\n",
+					strerror(-ret));
+				goto out_unmap;
+			}
+			if (buf[0] == MAGIC_BYTE_STOP) {
+				io_uring_cqe_seen(ring, cqe);
+				goto out_unmap;
+			}
+			io_uring_cqe_seen(ring, cqe);
+		}
+	}
+
+out_unmap:
+	munmap(buf, BUFSIZE);
+out:
+	return (void *) (intptr_t) ret;
+}
+
+static void *sendmsg_recvmsg_client_worker(void *ctx_p)
+{
+	struct sendto_ctx {
+		char buf[BUFSIZE];
+		struct msghdr msg;
+		struct iovec iov;
+	};
+
+	struct sockaddr_in dst_addr;
+	struct io_uring_cqe *cqe;
+	struct io_uring_sqe *sqe;
+	struct sendto_ctx *sctx;
+	struct io_uring *ring;
+	struct app_ctx *ctx;
+	unsigned total_send;
+	unsigned head;
+	size_t loop;
+	size_t i;
+	int tmp;
+	int ret;
+	int fd;
+
+	ret = -ENOMEM;
+	sctx = mmap_buffer(NR_CLIENT_ENTRIES * sizeof(*sctx));
+	if (!sctx)
+		goto out;
+
+	ret = 0;
+	ctx = ctx_p;
+	fd = ctx->client_fd;
+	ring = &ctx->client_ring;
+
+	memset(&dst_addr, 0, sizeof(dst_addr));
+	dst_addr.sin_family = AF_INET;
+	dst_addr.sin_addr.s_addr = inet_addr(SERVER_BIND_ADDR);
+	dst_addr.sin_port = htons(SERVER_BIND_PORT);
+
+	for (i = 0; i < NR_CLIENT_ENTRIES; i++) {
+		memset(&sctx[i].msg, 0, sizeof(sctx[i].msg));
+		memset(sctx[i].buf, 0xff, sizeof(sctx[i].buf));
+		sctx[i].msg.msg_name = &dst_addr;
+		sctx[i].msg.msg_namelen = sizeof(dst_addr);
+		sctx[i].msg.msg_iov = &sctx[i].iov;
+		sctx[i].msg.msg_iovlen = 1;
+		sctx[i].iov.iov_base = sctx[i].buf;
+		sctx[i].iov.iov_len = sizeof(sctx[i].buf);
+	}
+
+	loop = 0;
+do_burst:
+	for (i = 0; i < NR_CLIENT_ENTRIES; i++) {
+		sqe = io_uring_get_sqe(ring);
+		if (!sqe)
+			break;
+		io_uring_prep_sendmsg(sqe, fd, &sctx[i].msg, 0);
+	}
+
+	tmp = io_uring_submit_and_wait(ring, NR_CLIENT_ENTRIES);
+	if (tmp <= 0) {
+		fprintf(stderr, "Client submit failed: %d\n", tmp);
+		ret = tmp;
+		goto out_unmap;
+	}
+
+	total_send = 0;
+	io_uring_for_each_cqe(ring, head, cqe) {
+		total_send++;
+		ret = cqe->res;
+		if (ret < 0) {
+			fprintf(stderr,
+				"sendto error: %s\n", strerror(-ret));
+			goto out_unmap;
+		}
+	}
+	io_uring_cq_advance(ring, total_send);
+
+	if (loop++ < NR_CLIENT_LOOP)
+		goto do_burst;
+
+
+	printf("Client finished!\n");
+	printf("Stopping...\n");
+	sctx[0].buf[0] = MAGIC_BYTE_STOP;
+	ret = sendto(fd, sctx[0].buf, 1, 0, &dst_addr, sizeof(dst_addr));
+	if (ret < 0) {
+		ret = -errno;
+		perror("sendto");
+	} else {
+		ret = 0;
+	}
+
+out_unmap:
+	munmap(sctx, NR_CLIENT_ENTRIES * sizeof(*sctx));
+out:
+	return (void *) (intptr_t) ret;
+}
+
 
 __cold static int spawn_worker(struct app_ctx *ctx, void *(*func)(void *))
 {
@@ -292,20 +468,37 @@ __cold static int spawn_worker(struct app_ctx *ctx, void *(*func)(void *))
 	return 0;
 }
 
-noinline static int test_sendmsg_recvmsg(void)
+static void show_usage(const char *app)
 {
-	return 0;
+	puts("Usage:");
+	printf("\t%s sendmsg_recvmsg\n", app);
+	printf("\t%s sendto_recvfrom\n", app);
 }
 
-noinline static int test_sendto_recvfrom(void)
+static int run_test(const char *app, const char *arg)
 {
+	enum {
+		TEST_SENDMSG_RECVMSG,
+		TEST_SENDTO_RECVFROM
+	};
+
 	void *server_ret = NULL;
 	struct app_ctx ctx;
+	int target_test;
 	int ret;
 	int tmp;
 
-	memset(&ctx, 0, sizeof(ctx));
+	if (!strcmp(arg, "sendmsg_recvmsg")) {
+		target_test = TEST_SENDMSG_RECVMSG;
+	} else if (!strcmp(arg, "sendto_recvfrom")) {
+		target_test = TEST_SENDTO_RECVFROM;
+	} else {
+		fprintf(stderr, "Invalid target_test\n");
+		show_usage(app);
+		return -EINVAL;
+	}
 
+	memset(&ctx, 0, sizeof(ctx));
 	ret = create_server_socket();
 	if (ret < 0)
 		return ret;
@@ -324,16 +517,35 @@ noinline static int test_sendto_recvfrom(void)
 	if (ret < 0)
 		goto out_client_sock;
 
-	ret = spawn_worker(&ctx, sendto_recvfrom_server_worker);
-	if (ret < 0)
-		goto out_client_ring;
 
-	ret = (int) (intptr_t) sendto_recvfrom_client_worker(&ctx);
-	tmp = pthread_join(ctx.server_thread, &server_ret);
-	if (tmp < 0) {
-		ret = tmp;
-		goto out_client_ring;
+	switch (target_test) {
+	case TEST_SENDTO_RECVFROM:
+		ret = spawn_worker(&ctx, sendto_recvfrom_server_worker);
+		if (ret < 0)
+			goto out_client_ring;
+
+		ret = (int) (intptr_t) sendto_recvfrom_client_worker(&ctx);
+		tmp = pthread_join(ctx.server_thread, &server_ret);
+		if (tmp < 0) {
+			ret = tmp;
+			goto out_client_ring;
+		}
+		break;
+
+	case TEST_SENDMSG_RECVMSG:
+		ret = spawn_worker(&ctx, sendmsg_recvmsg_server_worker);
+		if (ret < 0)
+			goto out_client_ring;
+
+		ret = (int) (intptr_t) sendmsg_recvmsg_client_worker(&ctx);
+		tmp = pthread_join(ctx.server_thread, &server_ret);
+		if (tmp < 0) {
+			ret = tmp;
+			goto out_client_ring;
+		}
+		break;
 	}
+
 	if (server_ret)
 		ret = (int) (intptr_t) server_ret;
 
@@ -350,15 +562,10 @@ out_server_sock:
 
 int main(int argc, char **argv)
 {
-	if (argc != 2)
-		goto usage;
-	if (!strcmp(argv[1], "sendmsg_recvmsg"))
-		return test_sendmsg_recvmsg();
-	if (!strcmp(argv[1], "sendto_recvfrom"))
-		return test_sendto_recvfrom();
-usage:
-	puts("Usage:");
-	printf("\t%s sendmsg_recvmsg\n", argv[0]);
-	printf("\t%s sendto_recvfrom\n", argv[0]);
-	return 1;
+	if (argc != 2) {
+		show_usage(argv[0]);
+		return 0;
+	}
+
+	return -run_test(argv[0], argv[1]);
 }
