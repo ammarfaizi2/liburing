@@ -496,7 +496,7 @@ static void show_usage(const char *app)
 	printf("\t%s sendto_recvfrom [ring_entries] [number_of_iter]\n", app);
 }
 
-static int run_test(int argc, char **argv)
+static int run_test(char **argv)
 {
 	enum {
 		TEST_SENDMSG_RECVMSG,
@@ -586,7 +586,7 @@ out_server_sock:
 int main(int argc, char **argv)
 {
 	if (argc == 4)
-		return -run_test(argc, argv);
+		return -run_test(argv);
 
 	show_usage(argv[0]);
 	return 0;
