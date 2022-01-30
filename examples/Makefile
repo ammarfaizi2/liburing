@@ -13,7 +13,8 @@ endif
 example_srcs := \
 	io_uring-cp.c \
 	io_uring-test.c \
-	link-cp.c
+	link-cp.c \
+	sr.c
 
 all_targets :=
 
@@ -28,6 +29,8 @@ all_targets += $(example_targets)
 
 
 all: $(example_targets)
+
+sr: override LDFLAGS += -lpthread
 
 %: %.c
 	$(QUIET_CC)$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $< $(LDFLAGS)
