@@ -142,16 +142,121 @@
 
 #else /* #if defined(__x86_64__) */
 
-/*
- * For x86 (32-bit), fallback to libc wrapper.
- * We can't use CONFIG_NOLIBC for x86 (32-bit) at the moment.
- *
- * TODO: Add x86 (32-bit) nolibc support.
+/**
+ * Note for syscall registers usage (x86, 32-bit):
+ *   - %eax is the syscall number.
+ *   - %eax is also the return value.
+ *   - %ebx is the 1st argument.
+ *   - %ecx is the 2nd argument.
+ *   - %edx is the 3rd argument.
+ *   - %esi is the 4th argument.
+ *   - %edi is the 5th argument.
+ *   - %ebp is the 6th argument.
  */
-#ifdef CONFIG_NOLIBC
-	#error "x86 (32-bit) is currently not supported for nolibc builds"
-#endif
-#include "../generic/syscall.h"
+
+#define __do_syscall0(NUM) ({			\
+	intptr_t eax;				\
+						\
+	__asm__ volatile(			\
+		"int $0x80"			\
+		: "=a"(eax)	/* %eax */	\
+		: "a"(NUM)	/* %eax */	\
+		: "memory"			\
+	);					\
+	eax;					\
+})
+
+#define __do_syscall1(NUM, ARG1) ({		\
+	intptr_t eax;				\
+						\
+	__asm__ volatile(			\
+		"int $0x80"			\
+		: "=a"(eax)	/* %eax */	\
+		: "a"(NUM),	/* %eax */	\
+		  "b"((ARG1))	/* %ebx */	\
+		: "memory"			\
+	);					\
+	eax;					\
+})
+
+#define __do_syscall2(NUM, ARG1, ARG2) ({	\
+	intptr_t eax;				\
+						\
+	__asm__ volatile(			\
+		"int $0x80"			\
+		: "=a" (eax)	/* %eax */	\
+		: "a"(NUM),	/* %eax */	\
+		  "b"((ARG1)),	/* %ebx */	\
+		  "c"((ARG2))	/* %ecx */	\
+		: "memory"			\
+	);					\
+	eax;					\
+})
+
+#define __do_syscall3(NUM, ARG1, ARG2, ARG3) ({	\
+	intptr_t eax;				\
+						\
+	__asm__ volatile(			\
+		"int $0x80"			\
+		: "=a" (eax)	/* %eax */	\
+		: "a"(NUM),	/* %eax */	\
+		  "b"((ARG1)),	/* %ebx */	\
+		  "c"((ARG2)),	/* %ecx */	\
+		  "d"((ARG3))	/* %edx */	\
+		: "memory"			\
+	);					\
+	eax;					\
+})
+
+#define __do_syscall4(NUM, ARG1, ARG2, ARG3, ARG4) ({	\
+	intptr_t eax;					\
+							\
+	__asm__ volatile(				\
+		"int $0x80"				\
+		: "=a" (eax)	/* %eax */		\
+		: "a"(NUM),	/* %eax */		\
+		  "b"((ARG1)),	/* %ebx */		\
+		  "c"((ARG2)),	/* %ecx */		\
+		  "d"((ARG3)),	/* %edx */		\
+		  "S"((ARG4))	/* %esi */		\
+		: "memory"				\
+	);						\
+	eax;						\
+})
+
+#define __do_syscall5(NUM, ARG1, ARG2, ARG3, ARG4, ARG5) ({	\
+	intptr_t eax;						\
+								\
+	__asm__ volatile(					\
+		"int $0x80"					\
+		: "=a" (eax)	/* %eax */			\
+		: "a"(NUM),	/* %eax */			\
+		  "b"((ARG1)),	/* %ebx */			\
+		  "c"((ARG2)),	/* %ecx */			\
+		  "d"((ARG3)),	/* %edx */			\
+		  "S"((ARG4))	/* %esi */			\
+		: "memory"					\
+	);							\
+	eax;							\
+})
+
+#define __do_syscall6(NUM, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6) ({	\
+	intptr_t eax;							\
+	register __typeof__(ARG6) __ebp __asm__("ebp") = (ARG6);	\
+									\
+	__asm__ volatile(						\
+		"int $0x80"						\
+		: "=a" (eax)	/* %eax */				\
+		: "a"(NUM),	/* %eax */				\
+		  "b"((ARG1)),	/* %ebx */				\
+		  "c"((ARG2)),	/* %ecx */				\
+		  "d"((ARG3)),	/* %edx */				\
+		  "S"((ARG4)),	/* %esi */				\
+		  "r"(__ebp)	/* %ebp */				\
+		: "memory"						\
+	);								\
+	eax;								\
+})
 
 #endif /* #if defined(__x86_64__) */
 
