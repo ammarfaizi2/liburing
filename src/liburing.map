@@ -12,6 +12,7 @@ LIBURING_2.0 {
 		io_uring_register_buffers;
 		io_uring_register_eventfd;
 		io_uring_register_eventfd_async;
+		io_uring_register_uintr;
 		io_uring_register_files;
 		io_uring_register_files_update;
 		io_uring_register_personality;
@@ -21,6 +22,7 @@ LIBURING_2.0 {
 		io_uring_submit_and_wait;
 		io_uring_unregister_buffers;
 		io_uring_unregister_eventfd;
+		io_uring_unregister_uintr;
 		io_uring_unregister_files;
 		io_uring_unregister_personality;
 		io_uring_wait_cqe_timeout;

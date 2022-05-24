@@ -224,6 +224,24 @@ int io_uring_unregister_eventfd(struct io_uring *ring)
 	return (ret < 0) ? ret : 0;
 }
 
+int io_uring_register_uintr(struct io_uring *ring, int uintrfd)
+{
+	int ret;
+
+	ret = __sys_io_uring_register(ring->ring_fd, IORING_REGISTER_UINTR,
+				      &uintrfd, 1);
+	return (ret < 0) ? ret : 0;
+}
+
+int io_uring_unregister_uintr(struct io_uring *ring)
+{
+	int ret;
+
+	ret = __sys_io_uring_register(ring->ring_fd, IORING_UNREGISTER_UINTR,
+				      NULL, 0);
+	return (ret < 0) ? ret : 0;
+}
+
 int io_uring_register_eventfd_async(struct io_uring *ring, int event_fd)
 {
 	int ret;

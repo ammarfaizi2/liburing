@@ -164,6 +164,8 @@ int io_uring_register_files_update(struct io_uring *ring, unsigned off,
 int io_uring_register_eventfd(struct io_uring *ring, int fd);
 int io_uring_register_eventfd_async(struct io_uring *ring, int fd);
 int io_uring_unregister_eventfd(struct io_uring *ring);
+int io_uring_register_uintr(struct io_uring *ring, int fd);
+int io_uring_unregister_uintr(struct io_uring *ring);
 int io_uring_register_probe(struct io_uring *ring, struct io_uring_probe *p,
 			    unsigned nr);
 int io_uring_register_personality(struct io_uring *ring);

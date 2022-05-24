@@ -459,6 +459,10 @@ enum {
 	IORING_REGISTER_NOTIFIERS		= 26,
 	IORING_UNREGISTER_NOTIFIERS		= 27,
 
+	/* user interrupts */
+        IORING_REGISTER_UINTR			= 31,
+        IORING_UNREGISTER_UINTR			= 32,
+
 	/* this goes last */
 	IORING_REGISTER_LAST
 };
