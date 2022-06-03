@@ -26,6 +26,10 @@
 #define BUILD_BUG_ON(EXPR) static_assert(!(EXPR), "!(" #EXPR ") failed")
 #endif
 
+#ifndef sizeof_field
+#define sizeof_field(TYPE, MEMBER) sizeof((((TYPE *)0)->MEMBER))
+#endif
+
 #ifndef offsetof
 #define offsetof(TYPE, FIELD) ((size_t) &((TYPE *)0)->FIELD)
 #endif
