@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <assert.h>
 
 #define __INTERNAL__LIBURING_LIB_H
 #if defined(__x86_64__) || defined(__i386__)
@@ -21,6 +22,9 @@
 #endif
 #undef __INTERNAL__LIBURING_LIB_H
 
+#ifndef BUILD_BUG_ON
+#define BUILD_BUG_ON(EXPR) static_assert(!(EXPR), "!(" #EXPR ") failed")
+#endif
 
 #ifndef offsetof
 #define offsetof(TYPE, FIELD) ((size_t) &((TYPE *)0)->FIELD)
