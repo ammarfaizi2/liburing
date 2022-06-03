@@ -7,7 +7,8 @@ libdevdir ?= $(prefix)/lib
 
 CPPFLAGS ?=
 override CPPFLAGS += -D_GNU_SOURCE \
-	-Iinclude/ -include ../config-host.h
+	-Iinclude/ -include ../config-host.h \
+	-include build_assert.h
 CFLAGS ?= -g -O2 -Wall -Wextra -fno-stack-protector
 override CFLAGS += -Wno-unused-parameter -Wno-sign-compare -DLIBURING_INTERNAL
 SO_CFLAGS=-fPIC $(CFLAGS)
