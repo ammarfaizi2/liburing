@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: MIT */
+#ifndef _DEFAULT_SOURCE
 #define _DEFAULT_SOURCE
+#endif
 
 #include "lib.h"
 #include "syscall.h"
