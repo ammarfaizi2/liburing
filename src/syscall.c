@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: MIT */
+#ifndef _DEFAULT_SOURCE
 #define _DEFAULT_SOURCE
+#endif
 
 /*
  * Functions in this file require libc, only build them when we use libc.
