@@ -17,6 +17,11 @@ static inline int __sys_open(const char *pathname, int flags, mode_t mode)
 #endif
 }
 
+static inline int __sys_read(int fd, void *buffer, size_t size)
+{
+	return (int) __do_syscall3(__NR_read, fd, buffer, size);
+}
+
 static inline void *__sys_mmap(void *addr, size_t length, int prot, int flags,
 			       int fd, off_t offset)
 {
