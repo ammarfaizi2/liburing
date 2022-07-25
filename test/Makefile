@@ -175,6 +175,7 @@ test_srcs := \
 	xattr.c \
 	skip-cqe.c \
 	single-issuer.c \
+	send-zcopy.c \
 	# EOL
 
 all_targets :=
