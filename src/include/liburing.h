@@ -202,6 +202,14 @@ int io_uring_register_file_alloc_range(struct io_uring *ring,
 int io_uring_register_notifications(struct io_uring *ring, unsigned nr,
 				    struct io_uring_notification_slot *slots);
 int io_uring_unregister_notifications(struct io_uring *ring);
+int io_uring_enter(unsigned int fd, unsigned int to_submit,
+		   unsigned int min_complete, unsigned int flags,
+		   sigset_t *sig);
+int io_uring_enter2(int fd, unsigned to_submit, unsigned min_complete,
+		    unsigned flags, sigset_t *sig, int sz);
+int io_uring_setup(unsigned entries, struct io_uring_params *p);
+int io_uring_register(int fd, unsigned opcode, const void *arg,
+		      unsigned nr_args);
 
 /*
  * Helper for the peek/wait single cqe functions. Exported because of that,
