@@ -13,6 +13,7 @@
 #include <poll.h>
 #include <arpa/inet.h>
 
+#include "helpers.h"
 #include "liburing.h"
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -89,27 +90,19 @@ void *recv_thread(void *arg)
 	ret = setsockopt(s0, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
 	assert(ret != -1);
 
-	struct sockaddr_in addr;
+	struct sockaddr_in addr = { };
 
 	addr.sin_family = AF_INET;
 	data->addr = inet_addr("127.0.0.1");
 	addr.sin_addr.s_addr = data->addr;
 
-	i = 0;
-	do {
-		data->port = htons(1025 + (rand() % 64510));
-		addr.sin_port = data->port;
-
-		if (bind(s0, (struct sockaddr*)&addr, sizeof(addr)) != -1)
-			break;
-	} while (++i < 100);
-
-	if (i >= 100) {
-		fprintf(stderr, "Can't find good port, skipped\n");
+	if (t_bind_ephemeral_port(s0, &addr)) {
+		perror("bind");
 		data->stop = 1;
 		signal_var(&recv_thread_ready);
-		goto out;
+		goto err;
 	}
+	data->port = addr.sin_port;
 
 	ret = listen(s0, 128);
 	assert(ret != -1);
@@ -158,7 +151,6 @@ void *recv_thread(void *arg)
 		io_uring_cqe_seen(&ring, cqe);
 	}
 
-out:
 	signal_var(&recv_thread_done);
 	close(s0);
 	io_uring_queue_exit(&ring);
