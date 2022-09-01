@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
 	int32_t recv_s0;
 	int32_t val = 1;
 	struct sockaddr_in addr;
+	socklen_t addrlen;
 
 	if (argc > 1)
 		return 0;
@@ -44,13 +45,17 @@ int main(int argc, char *argv[])
 	assert(ret != -1);
 
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons((rand() % 61440) + 4096);
+	addr.sin_port = 0;
 	addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
 	ret = bind(recv_s0, (struct sockaddr*)&addr, sizeof(addr));
 	assert(ret != -1);
 	ret = listen(recv_s0, 128);
 	assert(ret != -1);
+
+	addrlen = (socklen_t)sizeof(addr);
+	assert(!getsockname(recv_s0, (struct sockaddr *)&addr,
+			    &addrlen));
 
 	p_fd[1] = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, IPPROTO_TCP);
 
