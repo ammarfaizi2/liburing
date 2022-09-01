@@ -202,6 +202,8 @@ int io_uring_register_file_alloc_range(struct io_uring *ring,
 int io_uring_register_notifications(struct io_uring *ring, unsigned nr,
 				    struct io_uring_notification_slot *slots);
 int io_uring_unregister_notifications(struct io_uring *ring);
+int io_uring_get_events(struct io_uring *ring);
+int io_uring_submit_and_get_events(struct io_uring *ring);
 
 /*
  * io_uring syscalls.
