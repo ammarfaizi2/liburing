@@ -105,6 +105,8 @@ test_srcs := \
 	mkdir.c \
 	msg-ring.c \
 	multicqes_drain.c \
+	napi-busy-poll-client.c \
+	napi-busy-poll-server.c \
 	nolibc.c \
 	nop-all-sizes.c \
 	nop.c \
