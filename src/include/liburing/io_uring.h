@@ -499,6 +499,10 @@ enum {
 	/* register a range of fixed file slots for automatic slot allocation */
 	IORING_REGISTER_FILE_ALLOC_RANGE	= 25,
 
+	/* set/clear busy poll timeout */
+	IORING_REGISTER_NAPI_BUSY_POLL_TIMEOUT	= 26,
+	IORING_UNREGISTER_NAPI_BUSY_POLL_TIMEOUT= 27,
+
 	/* this goes last */
 	IORING_REGISTER_LAST
 };
