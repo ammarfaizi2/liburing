@@ -1,0 +1,26 @@
+.\" Copyright (C) 2022 Stefan Roesch <shr@devkernel.io>
+.\"
+.\" SPDX-License-Identifier: LGPL-2.0-or-later
+.\"
+.TH io_uring_unregister_napi_busy_poll_timeout 3 "November 1, 2022" "liburing-2.3" "liburing Manual"
+.SH NAME
+io_uring_unregister_napi_busy_poll_timeout \- unregister NAPI busy poll timeout
+.SH SYNOPSIS
+.nf
+.B #include <liburing.h>
+.PP
+.BI "int io_uring_unregister_napi_busy_poll_timeout(struct io_uring *" ring ")
+.PP
+.fi
+.SH DESCRIPTION
+.PP
+The
+.BR io_uring_unregister_napi_busy_poll_timeout (3)
+function unregisters the NAPI busy poll
+for subsequent operations.
+
+.SH RETURN VALUE
+On success
+.BR io_uring_unregister_napi_busy_poll_timeout (3)
+return 0. On failure they return
+.BR -errno .

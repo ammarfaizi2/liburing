@@ -1,0 +1,35 @@
+.\" Copyright (C) 2022 Stefan Roesch <shr@devkernel.io>
+.\"
+.\" SPDX-License-Identifier: LGPL-2.0-or-later
+.\"
+.TH io_uring_register_napi_busy_poll_timeout 3 "November 1, 2022" "liburing-2.3" "liburing Manual"
+.SH NAME
+io_uring_register_napi_busy_poll_timeout \- register NAPI busy poll timeout
+.SH SYNOPSIS
+.nf
+.B #include <liburing.h>
+.PP
+.BI "int io_uring_register_napi_busy_poll_timeout(struct io_uring *" ring ","
+.BI "                                             unsigned int " timeout)
+.PP
+.fi
+.SH DESCRIPTION
+.PP
+The
+.BR io_uring_register_napi_busy_poll_timeout (3)
+function registers the NAPI busy poll
+.I timeout
+for subsequent operations.
+
+Registering a NAPI busy poll timeout is a requirement to be able to use
+NAPI busy polling. The other way to enable NAPI busy polling is to set the
+proc setting /proc/sys/net/core/busy_poll.
+
+NAPI busy poll can reduce the network roundtrip time.
+
+
+.SH RETURN VALUE
+On success
+.BR io_uring_register_napi_busy_poll_timeout (3)
+return 0. On failure they return
+.BR -errno .
