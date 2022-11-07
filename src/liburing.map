@@ -60,6 +60,8 @@ LIBURING_2.3 {
 	global:
 		io_uring_register_sync_cancel;
 		io_uring_register_file_alloc_range;
+		io_uring_register_busy_poll_timeout;
+		io_uring_unregister_busy_poll_timeout;
 		io_uring_enter;
 		io_uring_enter2;
 		io_uring_setup;
@@ -67,3 +69,9 @@ LIBURING_2.3 {
 		io_uring_get_events;
 		io_uring_submit_and_get_events;
 } LIBURING_2.2;
+
+LIBURING_2.4 {
+	global:
+		io_uring_napi_register_busy_poll_timeout;
+		io_uring_napi_unregister_busy_poll_timeout;
+} LIBURING_2.3;

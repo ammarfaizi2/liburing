@@ -367,3 +367,18 @@ int io_uring_register_file_alloc_range(struct io_uring *ring,
 				       IORING_REGISTER_FILE_ALLOC_RANGE, &range,
 				       0);
 }
+
+int io_uring_register_napi_busy_poll_timeout(struct io_uring *ring,
+					     unsigned int to)
+{
+	return __sys_io_uring_register(ring->ring_fd,
+				IORING_REGISTER_NAPI_BUSY_POLL_TIMEOUT,
+				NULL, to);
+}
+
+int io_uring_unregister_napi_busy_poll_timeout(struct io_uring *ring)
+{
+	return __sys_io_uring_register(ring->ring_fd,
+				IORING_UNREGISTER_NAPI_BUSY_POLL_TIMEOUT,
+				NULL, 0);
+}
