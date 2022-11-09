@@ -8,6 +8,7 @@
 #include "liburing/compat.h"
 #include "liburing/io_uring.h"
 
+__liburing_func_export
 int io_uring_register_buffers_update_tag(struct io_uring *ring, unsigned off,
 					 const struct iovec *iovecs,
 					 const __u64 *tags,
@@ -24,6 +25,7 @@ int io_uring_register_buffers_update_tag(struct io_uring *ring, unsigned off,
 					 sizeof(up));
 }
 
+__liburing_func_export
 int io_uring_register_buffers_tags(struct io_uring *ring,
 				   const struct iovec *iovecs,
 				   const __u64 *tags,
@@ -40,6 +42,7 @@ int io_uring_register_buffers_tags(struct io_uring *ring,
 				       sizeof(reg));
 }
 
+__liburing_func_export
 int io_uring_register_buffers_sparse(struct io_uring *ring, unsigned nr)
 {
 	struct io_uring_rsrc_register reg = {
@@ -51,6 +54,7 @@ int io_uring_register_buffers_sparse(struct io_uring *ring, unsigned nr)
 				       &reg, sizeof(reg));
 }
 
+__liburing_func_export
 int io_uring_register_buffers(struct io_uring *ring, const struct iovec *iovecs,
 			      unsigned nr_iovecs)
 {
@@ -61,6 +65,7 @@ int io_uring_register_buffers(struct io_uring *ring, const struct iovec *iovecs,
 	return (ret < 0) ? ret : 0;
 }
 
+__liburing_func_export
 int io_uring_unregister_buffers(struct io_uring *ring)
 {
 	int ret;
@@ -70,6 +75,7 @@ int io_uring_unregister_buffers(struct io_uring *ring)
 	return (ret < 0) ? ret : 0;
 }
 
+__liburing_func_export
 int io_uring_register_files_update_tag(struct io_uring *ring, unsigned off,
 					const int *files, const __u64 *tags,
 					unsigned nr_files)
@@ -93,6 +99,7 @@ int io_uring_register_files_update_tag(struct io_uring *ring, unsigned off,
  *
  * Returns number of files updated on success, -ERROR on failure.
  */
+__liburing_func_export
 int io_uring_register_files_update(struct io_uring *ring, unsigned off,
 				   const int *files, unsigned nr_files)
 {
@@ -123,6 +130,7 @@ static int increase_rlimit_nofile(unsigned nr)
 	return 0;
 }
 
+__liburing_func_export
 int io_uring_register_files_sparse(struct io_uring *ring, unsigned nr)
 {
 	struct io_uring_rsrc_register reg = {
@@ -148,6 +156,7 @@ int io_uring_register_files_sparse(struct io_uring *ring, unsigned nr)
 	return ret;
 }
 
+__liburing_func_export
 int io_uring_register_files_tags(struct io_uring *ring, const int *files,
 				 const __u64 *tags, unsigned nr)
 {
@@ -175,6 +184,7 @@ int io_uring_register_files_tags(struct io_uring *ring, const int *files,
 	return ret;
 }
 
+__liburing_func_export
 int io_uring_register_files(struct io_uring *ring, const int *files,
 			    unsigned nr_files)
 {
@@ -197,6 +207,7 @@ int io_uring_register_files(struct io_uring *ring, const int *files,
 	return ret;
 }
 
+__liburing_func_export
 int io_uring_unregister_files(struct io_uring *ring)
 {
 	int ret;
@@ -206,6 +217,7 @@ int io_uring_unregister_files(struct io_uring *ring)
 	return (ret < 0) ? ret : 0;
 }
 
+__liburing_func_export
 int io_uring_register_eventfd(struct io_uring *ring, int event_fd)
 {
 	int ret;
@@ -215,6 +227,7 @@ int io_uring_register_eventfd(struct io_uring *ring, int event_fd)
 	return (ret < 0) ? ret : 0;
 }
 
+__liburing_func_export
 int io_uring_unregister_eventfd(struct io_uring *ring)
 {
 	int ret;
@@ -224,6 +237,7 @@ int io_uring_unregister_eventfd(struct io_uring *ring)
 	return (ret < 0) ? ret : 0;
 }
 
+__liburing_func_export
 int io_uring_register_eventfd_async(struct io_uring *ring, int event_fd)
 {
 	int ret;
@@ -234,6 +248,7 @@ int io_uring_register_eventfd_async(struct io_uring *ring, int event_fd)
 	return (ret < 0) ? ret : 0;
 }
 
+__liburing_func_export
 int io_uring_register_probe(struct io_uring *ring, struct io_uring_probe *p,
 			    unsigned int nr_ops)
 {
@@ -244,18 +259,21 @@ int io_uring_register_probe(struct io_uring *ring, struct io_uring_probe *p,
 	return (ret < 0) ? ret : 0;
 }
 
+__liburing_func_export
 int io_uring_register_personality(struct io_uring *ring)
 {
 	return __sys_io_uring_register(ring->ring_fd,
 				       IORING_REGISTER_PERSONALITY, NULL, 0);
 }
 
+__liburing_func_export
 int io_uring_unregister_personality(struct io_uring *ring, int id)
 {
 	return __sys_io_uring_register(ring->ring_fd,
 				       IORING_UNREGISTER_PERSONALITY, NULL, id);
 }
 
+__liburing_func_export
 int io_uring_register_restrictions(struct io_uring *ring,
 				   struct io_uring_restriction *res,
 				   unsigned int nr_res)
@@ -268,12 +286,14 @@ int io_uring_register_restrictions(struct io_uring *ring,
 	return (ret < 0) ? ret : 0;
 }
 
+__liburing_func_export
 int io_uring_enable_rings(struct io_uring *ring)
 {
 	return __sys_io_uring_register(ring->ring_fd,
 				       IORING_REGISTER_ENABLE_RINGS, NULL, 0);
 }
 
+__liburing_func_export
 int io_uring_register_iowq_aff(struct io_uring *ring, size_t cpusz,
 			       const cpu_set_t *mask)
 {
@@ -284,12 +304,14 @@ int io_uring_register_iowq_aff(struct io_uring *ring, size_t cpusz,
 					mask, (int) cpusz);
 }
 
+__liburing_func_export
 int io_uring_unregister_iowq_aff(struct io_uring *ring)
 {
 	return __sys_io_uring_register(ring->ring_fd,
 				       IORING_UNREGISTER_IOWQ_AFF, NULL, 0);
 }
 
+__liburing_func_export
 int io_uring_register_iowq_max_workers(struct io_uring *ring, unsigned int *val)
 {
 	return __sys_io_uring_register(ring->ring_fd,
@@ -297,6 +319,7 @@ int io_uring_register_iowq_max_workers(struct io_uring *ring, unsigned int *val)
 				       2);
 }
 
+__liburing_func_export
 int io_uring_register_ring_fd(struct io_uring *ring)
 {
 	struct io_uring_rsrc_update up = {
@@ -314,7 +337,7 @@ int io_uring_register_ring_fd(struct io_uring *ring)
 	return ret;
 }
 
-
+__liburing_func_export
 int io_uring_unregister_ring_fd(struct io_uring *ring)
 {
 	struct io_uring_rsrc_update up = {
@@ -331,6 +354,7 @@ int io_uring_unregister_ring_fd(struct io_uring *ring)
 	return ret;
 }
 
+__liburing_func_export
 int io_uring_register_buf_ring(struct io_uring *ring,
 			       struct io_uring_buf_reg *reg,
 			       unsigned int __maybe_unused flags)
@@ -339,6 +363,7 @@ int io_uring_register_buf_ring(struct io_uring *ring,
 				       reg, 1);
 }
 
+__liburing_func_export
 int io_uring_unregister_buf_ring(struct io_uring *ring, int bgid)
 {
 	struct io_uring_buf_reg reg = { .bgid = bgid };
@@ -347,6 +372,7 @@ int io_uring_unregister_buf_ring(struct io_uring *ring, int bgid)
 				       IORING_UNREGISTER_PBUF_RING, &reg, 1);
 }
 
+__liburing_func_export
 int io_uring_register_sync_cancel(struct io_uring *ring,
 				  struct io_uring_sync_cancel_reg *reg)
 {
@@ -354,6 +380,7 @@ int io_uring_register_sync_cancel(struct io_uring *ring,
 				       IORING_REGISTER_SYNC_CANCEL, reg, 1);
 }
 
+__liburing_func_export
 int io_uring_register_file_alloc_range(struct io_uring *ring,
 					unsigned off, unsigned len)
 {

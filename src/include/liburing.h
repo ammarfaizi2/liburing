@@ -33,6 +33,11 @@
 #define uring_likely(cond)	__builtin_expect(!!(cond), 1)
 #endif
 
+/*
+ * For generating liburing header only.
+ */
+#define __liburing_func_export __attribute__((__unused__)) static
+
 #ifdef __alpha__
 /*
  * alpha and mips are the exceptions, all other architectures have
@@ -141,14 +146,17 @@ struct io_uring {
  * return an allocated io_uring_probe structure, or NULL if probe fails (for
  * example, if it is not available). The caller is responsible for freeing it
  */
+__liburing_func_export
 struct io_uring_probe *io_uring_get_probe_ring(struct io_uring *ring);
 /* same as io_uring_get_probe_ring, but takes care of ring init and teardown */
+__liburing_func_export
 struct io_uring_probe *io_uring_get_probe(void);
 
 /*
  * frees a probe allocated through io_uring_get_probe() or
  * io_uring_get_probe_ring()
  */
+__liburing_func_export
 void io_uring_free_probe(struct io_uring_probe *probe);
 
 static inline int io_uring_opcode_supported(const struct io_uring_probe *p,
@@ -159,94 +167,140 @@ static inline int io_uring_opcode_supported(const struct io_uring_probe *p,
 	return (p->ops[op].flags & IO_URING_OP_SUPPORTED) != 0;
 }
 
+__liburing_func_export
 int io_uring_queue_init_params(unsigned entries, struct io_uring *ring,
 				struct io_uring_params *p);
+__liburing_func_export
 int io_uring_queue_init(unsigned entries, struct io_uring *ring,
 			unsigned flags);
+__liburing_func_export
 int io_uring_queue_mmap(int fd, struct io_uring_params *p,
 			struct io_uring *ring);
+__liburing_func_export
 int io_uring_ring_dontfork(struct io_uring *ring);
+__liburing_func_export
 void io_uring_queue_exit(struct io_uring *ring);
+__liburing_func_export
 unsigned io_uring_peek_batch_cqe(struct io_uring *ring,
 	struct io_uring_cqe **cqes, unsigned count);
+__liburing_func_export
 int io_uring_wait_cqes(struct io_uring *ring, struct io_uring_cqe **cqe_ptr,
 		       unsigned wait_nr, struct __kernel_timespec *ts,
 		       sigset_t *sigmask);
+__liburing_func_export
 int io_uring_wait_cqe_timeout(struct io_uring *ring,
 			      struct io_uring_cqe **cqe_ptr,
 			      struct __kernel_timespec *ts);
+__liburing_func_export
 int io_uring_submit(struct io_uring *ring);
+__liburing_func_export
 int io_uring_submit_and_wait(struct io_uring *ring, unsigned wait_nr);
+__liburing_func_export
 int io_uring_submit_and_wait_timeout(struct io_uring *ring,
 				     struct io_uring_cqe **cqe_ptr,
 				     unsigned wait_nr,
 				     struct __kernel_timespec *ts,
 				     sigset_t *sigmask);
 
+__liburing_func_export
 int io_uring_register_buffers(struct io_uring *ring, const struct iovec *iovecs,
 			      unsigned nr_iovecs);
+__liburing_func_export
 int io_uring_register_buffers_tags(struct io_uring *ring,
 				   const struct iovec *iovecs,
 				   const __u64 *tags, unsigned nr);
+__liburing_func_export
 int io_uring_register_buffers_sparse(struct io_uring *ring, unsigned nr);
+__liburing_func_export
 int io_uring_register_buffers_update_tag(struct io_uring *ring,
 					 unsigned off,
 					 const struct iovec *iovecs,
 					 const __u64 *tags, unsigned nr);
+__liburing_func_export
 int io_uring_unregister_buffers(struct io_uring *ring);
 
+__liburing_func_export
 int io_uring_register_files(struct io_uring *ring, const int *files,
 			    unsigned nr_files);
+__liburing_func_export
 int io_uring_register_files_tags(struct io_uring *ring, const int *files,
 				 const __u64 *tags, unsigned nr);
+__liburing_func_export
 int io_uring_register_files_sparse(struct io_uring *ring, unsigned nr);
+__liburing_func_export
 int io_uring_register_files_update_tag(struct io_uring *ring, unsigned off,
 				       const int *files, const __u64 *tags,
 				       unsigned nr_files);
 
+__liburing_func_export
 int io_uring_unregister_files(struct io_uring *ring);
+__liburing_func_export
 int io_uring_register_files_update(struct io_uring *ring, unsigned off,
 				   const int *files, unsigned nr_files);
+__liburing_func_export
 int io_uring_register_eventfd(struct io_uring *ring, int fd);
+__liburing_func_export
 int io_uring_register_eventfd_async(struct io_uring *ring, int fd);
+__liburing_func_export
 int io_uring_unregister_eventfd(struct io_uring *ring);
+__liburing_func_export
 int io_uring_register_probe(struct io_uring *ring, struct io_uring_probe *p,
 			    unsigned nr);
+__liburing_func_export
 int io_uring_register_personality(struct io_uring *ring);
+__liburing_func_export
 int io_uring_unregister_personality(struct io_uring *ring, int id);
+__liburing_func_export
 int io_uring_register_restrictions(struct io_uring *ring,
 				   struct io_uring_restriction *res,
 				   unsigned int nr_res);
+__liburing_func_export
 int io_uring_enable_rings(struct io_uring *ring);
+__liburing_func_export
 int __io_uring_sqring_wait(struct io_uring *ring);
+__liburing_func_export
 int io_uring_register_iowq_aff(struct io_uring *ring, size_t cpusz,
 				const cpu_set_t *mask);
+__liburing_func_export
 int io_uring_unregister_iowq_aff(struct io_uring *ring);
+__liburing_func_export
 int io_uring_register_iowq_max_workers(struct io_uring *ring,
 				       unsigned int *values);
+__liburing_func_export
 int io_uring_register_ring_fd(struct io_uring *ring);
+__liburing_func_export
 int io_uring_unregister_ring_fd(struct io_uring *ring);
+__liburing_func_export
 int io_uring_register_buf_ring(struct io_uring *ring,
 			       struct io_uring_buf_reg *reg, unsigned int flags);
+__liburing_func_export
 int io_uring_unregister_buf_ring(struct io_uring *ring, int bgid);
+__liburing_func_export
 int io_uring_register_sync_cancel(struct io_uring *ring,
 				 struct io_uring_sync_cancel_reg *reg);
+__liburing_func_export
 
 int io_uring_register_file_alloc_range(struct io_uring *ring,
 					unsigned off, unsigned len);
+__liburing_func_export
 
 int io_uring_get_events(struct io_uring *ring);
+__liburing_func_export
 int io_uring_submit_and_get_events(struct io_uring *ring);
 
 /*
  * io_uring syscalls.
  */
+__liburing_func_export
 int io_uring_enter(unsigned int fd, unsigned int to_submit,
 		   unsigned int min_complete, unsigned int flags, sigset_t *sig);
+__liburing_func_export
 int io_uring_enter2(unsigned int fd, unsigned int to_submit,
 		    unsigned int min_complete, unsigned int flags,
 		    sigset_t *sig, size_t sz);
+__liburing_func_export
 int io_uring_setup(unsigned int entries, struct io_uring_params *p);
+__liburing_func_export
 int io_uring_register(unsigned int fd, unsigned int opcode, const void *arg,
 		      unsigned int nr_args);
 
@@ -254,6 +308,7 @@ int io_uring_register(unsigned int fd, unsigned int opcode, const void *arg,
  * Helper for the peek/wait single cqe functions. Exported because of that,
  * but probably shouldn't be used directly in an application.
  */
+__liburing_func_export
 int __io_uring_get_cqe(struct io_uring *ring,
 			struct io_uring_cqe **cqe_ptr, unsigned submit,
 			unsigned wait_nr, sigset_t *sigmask);
@@ -1344,7 +1399,10 @@ static inline struct io_uring_sqe *io_uring_get_sqe(struct io_uring *ring)
 struct io_uring_sqe *io_uring_get_sqe(struct io_uring *ring);
 #endif
 
+__liburing_func_export
 ssize_t io_uring_mlock_size(unsigned entries, unsigned flags);
+
+__liburing_func_export
 ssize_t io_uring_mlock_size_params(unsigned entries, struct io_uring_params *p);
 
 #ifdef __cplusplus

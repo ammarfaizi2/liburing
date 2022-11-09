@@ -132,6 +132,7 @@ static int _io_uring_get_cqe(struct io_uring *ring,
 	return err;
 }
 
+__liburing_func_export
 int __io_uring_get_cqe(struct io_uring *ring, struct io_uring_cqe **cqe_ptr,
 		       unsigned submit, unsigned wait_nr, sigset_t *sigmask)
 {
@@ -146,6 +147,7 @@ int __io_uring_get_cqe(struct io_uring *ring, struct io_uring_cqe **cqe_ptr,
 	return _io_uring_get_cqe(ring, cqe_ptr, &data);
 }
 
+__liburing_func_export
 int io_uring_get_events(struct io_uring *ring)
 {
 	int flags = IORING_ENTER_GETEVENTS;
@@ -159,6 +161,7 @@ int io_uring_get_events(struct io_uring *ring)
  * Fill in an array of IO completions up to count, if any are available.
  * Returns the amount of IO completions filled.
  */
+__liburing_func_export
 unsigned io_uring_peek_batch_cqe(struct io_uring *ring,
 				 struct io_uring_cqe **cqes, unsigned count)
 {
@@ -201,6 +204,7 @@ again:
  * Sync internal state with kernel ring state on the SQ side. Returns the
  * number of pending items in the SQ ring, for the shared ring.
  */
+__liburing_func_export
 unsigned __io_uring_flush_sq(struct io_uring *ring)
 {
 	struct io_uring_sq *sq = &ring->sq;
@@ -296,6 +300,7 @@ static int __io_uring_submit_timeout(struct io_uring *ring, unsigned wait_nr,
 	return __io_uring_flush_sq(ring);
 }
 
+__liburing_func_export
 int io_uring_wait_cqes(struct io_uring *ring, struct io_uring_cqe **cqe_ptr,
 		       unsigned wait_nr, struct __kernel_timespec *ts,
 		       sigset_t *sigmask)
@@ -314,6 +319,7 @@ int io_uring_wait_cqes(struct io_uring *ring, struct io_uring_cqe **cqe_ptr,
 	return __io_uring_get_cqe(ring, cqe_ptr, to_submit, wait_nr, sigmask);
 }
 
+__liburing_func_export
 int io_uring_submit_and_wait_timeout(struct io_uring *ring,
 				     struct io_uring_cqe **cqe_ptr,
 				     unsigned wait_nr,
@@ -353,6 +359,7 @@ int io_uring_submit_and_wait_timeout(struct io_uring *ring,
  * See io_uring_wait_cqes() - this function is the same, it just always uses
  * '1' as the wait_nr.
  */
+__liburing_func_export
 int io_uring_wait_cqe_timeout(struct io_uring *ring,
 			      struct io_uring_cqe **cqe_ptr,
 			      struct __kernel_timespec *ts)
@@ -397,6 +404,7 @@ static int __io_uring_submit_and_wait(struct io_uring *ring, unsigned wait_nr)
  *
  * Returns number of sqes submitted
  */
+__liburing_func_export
 int io_uring_submit(struct io_uring *ring)
 {
 	return __io_uring_submit_and_wait(ring, 0);
@@ -407,11 +415,13 @@ int io_uring_submit(struct io_uring *ring)
  *
  * Returns number of sqes submitted
  */
+__liburing_func_export
 int io_uring_submit_and_wait(struct io_uring *ring, unsigned wait_nr)
 {
 	return __io_uring_submit_and_wait(ring, wait_nr);
 }
 
+__liburing_func_export
 int io_uring_submit_and_get_events(struct io_uring *ring)
 {
 	return __io_uring_submit(ring, __io_uring_flush_sq(ring), 0, true);
@@ -424,6 +434,7 @@ struct io_uring_sqe *io_uring_get_sqe(struct io_uring *ring)
 }
 #endif
 
+__liburing_func_export
 int __io_uring_sqring_wait(struct io_uring *ring)
 {
 	int flags = IORING_ENTER_SQ_WAIT;

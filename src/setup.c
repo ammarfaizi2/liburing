@@ -94,6 +94,7 @@ err:
  * Returns -errno on error, or zero on success.  On success, 'ring'
  * contains the necessary information to read/write to the rings.
  */
+__liburing_func_export
 __cold int io_uring_queue_mmap(int fd, struct io_uring_params *p,
 			       struct io_uring *ring)
 {
@@ -113,6 +114,7 @@ __cold int io_uring_queue_mmap(int fd, struct io_uring_params *p,
  * Ensure that the mmap'ed rings aren't available to a child after a fork(2).
  * This uses madvise(..., MADV_DONTFORK) on the mmap'ed ranges.
  */
+__liburing_func_export
 __cold int io_uring_ring_dontfork(struct io_uring *ring)
 {
 	size_t len;
@@ -144,6 +146,7 @@ __cold int io_uring_ring_dontfork(struct io_uring *ring)
 	return 0;
 }
 
+__liburing_func_export
 __cold int io_uring_queue_init_params(unsigned entries, struct io_uring *ring,
 				      struct io_uring_params *p)
 {
@@ -177,6 +180,7 @@ __cold int io_uring_queue_init_params(unsigned entries, struct io_uring *ring,
  * Returns -errno on error, or zero on success. On success, 'ring'
  * contains the necessary information to read/write to the rings.
  */
+__liburing_func_export
 __cold int io_uring_queue_init(unsigned entries, struct io_uring *ring,
 			       unsigned flags)
 {
@@ -188,6 +192,7 @@ __cold int io_uring_queue_init(unsigned entries, struct io_uring *ring,
 	return io_uring_queue_init_params(entries, ring, &p);
 }
 
+__liburing_func_export
 __cold void io_uring_queue_exit(struct io_uring *ring)
 {
 	struct io_uring_sq *sq = &ring->sq;
@@ -208,6 +213,7 @@ __cold void io_uring_queue_exit(struct io_uring *ring)
 	__sys_close(ring->ring_fd);
 }
 
+__liburing_func_export
 __cold struct io_uring_probe *io_uring_get_probe_ring(struct io_uring *ring)
 {
 	struct io_uring_probe *probe;
@@ -228,6 +234,7 @@ __cold struct io_uring_probe *io_uring_get_probe_ring(struct io_uring *ring)
 	return NULL;
 }
 
+__liburing_func_export
 __cold struct io_uring_probe *io_uring_get_probe(void)
 {
 	struct io_uring ring;
@@ -243,6 +250,7 @@ __cold struct io_uring_probe *io_uring_get_probe(void)
 	return probe;
 }
 
+__liburing_func_export
 __cold void io_uring_free_probe(struct io_uring_probe *probe)
 {
 	uring_free(probe);
@@ -301,6 +309,7 @@ static size_t rings_size(struct io_uring_params *p, unsigned entries,
  * return the required memory so that the caller can ensure that enough space
  * is available before setting up a ring with the specified parameters.
  */
+__liburing_func_export
 __cold ssize_t io_uring_mlock_size_params(unsigned entries,
 					  struct io_uring_params *p)
 {
@@ -361,6 +370,7 @@ __cold ssize_t io_uring_mlock_size_params(unsigned entries,
  * Return required ulimit -l memory space for a given ring setup. See
  * @io_uring_mlock_size_params().
  */
+__liburing_func_export
 __cold ssize_t io_uring_mlock_size(unsigned entries, unsigned flags)
 {
 	struct io_uring_params p = { .flags = flags, };
