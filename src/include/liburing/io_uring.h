@@ -499,6 +499,10 @@ enum {
 	/* register a range of fixed file slots for automatic slot allocation */
 	IORING_REGISTER_FILE_ALLOC_RANGE	= 25,
 
+	/* set/clear busy poll settings */
+	IORING_REGISTER_NAPI			= 26,
+	IORING_UNREGISTER_NAPI			= 27,
+
 	/* this goes last */
 	IORING_REGISTER_LAST
 };
@@ -619,6 +623,14 @@ struct io_uring_buf_reg {
 	__u16	bgid;
 	__u16	pad;
 	__u64	resv[3];
+};
+
+/* argument for IORING_(UN)REGISTER_NAPI */
+struct io_uring_napi {
+	__u32   busy_poll_to;
+	__u8    prefer_busy_poll;
+	__u8    pad[3];
+	__u64   resv;
 };
 
 /*

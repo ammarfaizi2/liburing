@@ -67,3 +67,9 @@ LIBURING_2.3 {
 		io_uring_get_events;
 		io_uring_submit_and_get_events;
 } LIBURING_2.2;
+
+LIBURING_2.4 {
+	global:
+		io_uring_register_napi;
+		io_uring_unregister_napi;
+} LIBURING_2.3;
