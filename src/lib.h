@@ -6,6 +6,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "syscall.h"
+
 #if defined(__x86_64__) || defined(__i386__)
 #include "arch/x86/lib.h"
 #elif defined(__aarch64__)
@@ -20,7 +22,6 @@
 /* libc wrappers. */
 #include "arch/generic/lib.h"
 #endif
-
 
 #ifndef offsetof
 #define offsetof(TYPE, FIELD) ((size_t) &((TYPE *)0)->FIELD)
@@ -37,28 +38,38 @@
 #define __hot			__attribute__((__hot__))
 #define __cold			__attribute__((__cold__))
 
-void *__uring_malloc(size_t len);
-void __uring_free(void *p);
+#ifdef CONFIG_NOLIBC
+struct uring_heap {
+	size_t		len;
+	char		user_p[] __attribute__((__aligned__));
+};
 
-static inline void *uring_malloc(size_t len)
+static inline void *__uring_malloc(size_t len)
 {
-#ifdef CONFIG_NOLIBC
-	return __uring_malloc(len);
-#else
-	return malloc(len);
-#endif
-}
+	struct uring_heap *heap;
 
-static inline void uring_free(void *ptr)
+	heap = __sys_mmap(NULL, sizeof(*heap) + len, PROT_READ | PROT_WRITE,
+			  MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+	if (IS_ERR(heap))
+		return NULL;
+
+	heap->len = sizeof(*heap) + len;
+	return heap->user_p;
+}
+#define malloc(LEN) __uring_malloc(LEN)
+
+static inline void __uring_free(void *p)
 {
-#ifdef CONFIG_NOLIBC
-	__uring_free(ptr);
-#else
-	free(ptr);
-#endif
-}
+	struct uring_heap *heap;
 
-#ifdef CONFIG_NOLIBC
+	if (uring_unlikely(!p))
+		return;
+
+	heap = container_of(p, struct uring_heap, user_p);
+	__sys_munmap(heap, heap->len);
+}
+#define free(PTR) __uring_free(PTR)
+
 static inline void *__uring_memset(void *s, int c, size_t n)
 {
 	unsigned char *p = s;
@@ -70,6 +81,6 @@ static inline void *__uring_memset(void *s, int c, size_t n)
 	return s;
 }
 #define memset(S, C, N) __uring_memset(S, C, N)
-#endif
+#endif /* #ifdef CONFIG_NOLIBC */
 
 #endif /* #ifndef LIBURING_LIB_H */
