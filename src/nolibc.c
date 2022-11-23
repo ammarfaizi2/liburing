@@ -7,17 +7,6 @@
 #include "lib.h"
 #include "syscall.h"
 
-void *memset(void *s, int c, size_t n)
-{
-	size_t i;
-	unsigned char *p = s;
-
-	for (i = 0; i < n; i++)
-		p[i] = (unsigned char) c;
-
-	return s;
-}
-
 struct uring_heap {
 	size_t		len;
 	char		user_p[] __attribute__((__aligned__));

@@ -58,4 +58,18 @@ static inline void uring_free(void *ptr)
 #endif
 }
 
+#ifdef CONFIG_NOLIBC
+static inline void *__uring_memset(void *s, int c, size_t n)
+{
+	unsigned char *p = s;
+	size_t i;
+
+	for (i = 0; i < n; i++)
+		p[i] = (unsigned char) c;
+
+	return s;
+}
+#define memset(S, C, N) __uring_memset(S, C, N)
+#endif
+
 #endif /* #ifndef LIBURING_LIB_H */
