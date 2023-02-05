@@ -76,4 +76,7 @@ LIBURING_2.4 {
 
 		io_uring_enable_rings;
 		io_uring_register_restrictions;
+
+		io_uring_register_napi;
+		io_uring_unregister_napi;
 } LIBURING_2.3;
