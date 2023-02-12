@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
-#include <error.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -55,14 +54,20 @@ static int try_submit(struct io_uring *ring)
 	if (ret < 0)
 		return ret;
 
-	if (ret != 1)
-		error(1, ret, "submit %i", ret);
+	if (ret != 1) {
+		fprintf(stderr, "submit %i\n", ret);
+		exit(T_EXIT_FAIL);
+	}
 	ret = io_uring_wait_cqe(ring, &cqe);
-	if (ret)
-		error(1, ret, "wait fail %i", ret);
+	if (ret) {
+		fprintf(stderr, "wait fail %i\n", ret);
+		exit(T_EXIT_FAIL);
+	}
 
-	if (cqe->res || cqe->user_data != 42)
-		error(1, ret, "invalid cqe");
+	if (cqe->res || cqe->user_data != 42) {
+		fprintf(stderr, "invalid cqe %i\n", cqe->res);
+		exit(T_EXIT_FAIL);
+	}
 
 	io_uring_cqe_seen(ring, cqe);
 	return 0;
@@ -104,8 +109,10 @@ int main(int argc, char *argv[])
 	/* test that the first submitter but not creator can submit */
 	ret = io_uring_queue_init(8, &ring, IORING_SETUP_SINGLE_ISSUER |
 					    IORING_SETUP_R_DISABLED);
-	if (ret)
-		error(1, ret, "ring init (2) %i", ret);
+	if (ret) {
+		fprintf(stderr, "ring init (2) %i\n", ret);
+		exit(T_EXIT_FAIL);
+	}
 
 	if (!fork_t()) {
 		io_uring_enable_rings(&ring);
@@ -120,8 +127,10 @@ int main(int argc, char *argv[])
 	/* test that only the first enabler can submit */
 	ret = io_uring_queue_init(8, &ring, IORING_SETUP_SINGLE_ISSUER |
 					    IORING_SETUP_R_DISABLED);
-	if (ret)
-		error(1, ret, "ring init (3) %i", ret);
+	if (ret) {
+		fprintf(stderr, "ring init (3) %i\n", ret);
+		exit(T_EXIT_FAIL);
+	}
 
 	io_uring_enable_rings(&ring);
 	if (!fork_t()) {
@@ -135,8 +144,10 @@ int main(int argc, char *argv[])
 
 	/* test that anyone can submit to a SQPOLL|SINGLE_ISSUER ring */
 	ret = io_uring_queue_init(8, &ring, IORING_SETUP_SINGLE_ISSUER|IORING_SETUP_SQPOLL);
-	if (ret)
-		error(1, ret, "ring init (4) %i", ret);
+	if (ret) {
+		fprintf(stderr, "ring init (4) %i\n", ret);
+		exit(T_EXIT_FAIL);
+	}
 
 	ret = try_submit(&ring);
 	if (ret) {
@@ -155,8 +166,10 @@ int main(int argc, char *argv[])
 
 	/* test that IORING_ENTER_REGISTERED_RING doesn't break anything */
 	ret = io_uring_queue_init(8, &ring, IORING_SETUP_SINGLE_ISSUER);
-	if (ret)
-		error(1, ret, "ring init (5) %i", ret);
+	if (ret) {
+		fprintf(stderr, "ring init (5) %i\n", ret);
+		exit(T_EXIT_FAIL);
+	}
 
 	if (!fork_t()) {
 		ret = try_submit(&ring);
