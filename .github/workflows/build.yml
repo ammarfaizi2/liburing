@@ -21,6 +21,14 @@ jobs:
             cxx: x86_64-linux-gnu-g++
             sanitize: 0
 
+          # x86-64 gcc musl
+          - arch: x86_64
+            cc_pkg: musl musl-dev musl-tools
+            cxx_pkg: g++-x86-64-linux-gnu
+            cc: x86_64-linux-musl-gcc
+            cxx: x86_64-linux-gnu-g++
+            sanitize: 0
+
           # x86-64 gcc asan
           - arch: x86_64
             cc_pkg: gcc-x86-64-linux-gnu
