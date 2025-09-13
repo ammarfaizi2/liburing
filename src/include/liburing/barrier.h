@@ -23,46 +23,29 @@ after the acquire operation executes. This is implemented using
 
 #ifdef __cplusplus
 #include <atomic>
-#define LIBURING_NOEXCEPT noexcept
+#define IO_URING_WRITE_ONCE(var, val) \
+	std::atomic_store_explicit( \
+		reinterpret_cast<std::atomic<__typeof__(var)> *>(&(var)), \
+		(val), std::memory_order_relaxed)
 
-template <typename T>
-static inline void IO_URING_WRITE_ONCE(T &var, T val)
-	LIBURING_NOEXCEPT
-{
-	std::atomic_store_explicit(reinterpret_cast<std::atomic<T> *>(&var),
-				   val, std::memory_order_relaxed);
-}
-template <typename T>
-static inline T IO_URING_READ_ONCE(const T &var)
-	LIBURING_NOEXCEPT
-{
-	return std::atomic_load_explicit(
-		reinterpret_cast<const std::atomic<T> *>(&var),
-		std::memory_order_relaxed);
-}
+#define IO_URING_READ_ONCE(var) \
+	std::atomic_load_explicit( \
+		reinterpret_cast<const std::atomic<__typeof__(var)> *>(&(var)), \
+		std::memory_order_relaxed)
 
-template <typename T>
-static inline void io_uring_smp_store_release(T *p, T v)
-	LIBURING_NOEXCEPT
-{
-	std::atomic_store_explicit(reinterpret_cast<std::atomic<T> *>(p), v,
-				   std::memory_order_release);
-}
+#define io_uring_smp_store_release(p, v) \
+	std::atomic_store_explicit( \
+		reinterpret_cast<std::atomic<__typeof__(*(p))> *>((p)), \
+		(v), std::memory_order_release)
 
-template <typename T>
-static inline T io_uring_smp_load_acquire(const T *p)
-	LIBURING_NOEXCEPT
-{
-	return std::atomic_load_explicit(
-		reinterpret_cast<const std::atomic<T> *>(p),
-		std::memory_order_acquire);
-}
+#define io_uring_smp_load_acquire(p) \
+	std::atomic_load_explicit( \
+		reinterpret_cast<const std::atomic<__typeof__(*(p))> *>((p)), \
+		std::memory_order_acquire)
 
-static inline void io_uring_smp_mb()
-	LIBURING_NOEXCEPT
-{
-	std::atomic_thread_fence(std::memory_order_seq_cst);
-}
+#define io_uring_smp_mb() \
+	std::atomic_thread_fence(std::memory_order_seq_cst)
+
 #else
 #include <stdatomic.h>
 
