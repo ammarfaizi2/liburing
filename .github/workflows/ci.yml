@@ -196,6 +196,11 @@ jobs:
         run: |
           sudo make install;
 
+      - name: Test simple build against installed liburing
+        run: |
+          ${{matrix.build_args.cc}} -x c -o a.out .github/workflows/test_build.c -luring;
+          ${{matrix.build_args.cxx}} -x c++ -o a.out .github/workflows/test_build.c -luring;
+
 
   alpine-musl-build:
     needs: get_commit_list
@@ -238,6 +243,12 @@ jobs:
         shell: alpine.sh --root {0}
         run: |
           make install;
+
+      - name: Test simple build against installed liburing
+        shell: alpine.sh {0}
+        run: |
+          gcc -x c -o a.out .github/workflows/test_build.c -luring;
+          g++ -x c++ -o a.out .github/workflows/test_build.c -luring;
 
 
   codespell:
