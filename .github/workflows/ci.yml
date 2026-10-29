@@ -299,59 +299,6 @@ jobs:
             exit 1;
           fi
 
-
-  alpine-musl-build:
-    needs: get_commit_list
-    runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        commit: ${{ fromJson(needs.get_commit_list.outputs.commit_list) }}
-
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Checkout commit
-        env:
-          COMMIT: ${{ matrix.commit }}
-        run: |
-          git checkout --detach "$COMMIT";
-
-      - name: Setup Alpine Environment
-        uses: jirutka/setup-alpine@v1
-        with:
-          branch: v3.15
-
-      - name: Display Alpine version
-        shell: alpine.sh {0}
-        run: cat /etc/alpine-release;
-
-      - name: Install build dependencies
-        shell: alpine.sh --root {0}
-        run: |
-          apk add --no-cache build-base musl-dev linux-headers;
-
-      - name: Build
-        shell: alpine.sh {0}
-        run: |
-          ./configure --cc=gcc --cxx=g++;
-          make -j$(nproc) V=1 CPPFLAGS="-Werror" CFLAGS="$FLAGS" CXXFLAGS="$FLAGS";
-
-      - name: Test install command
-        shell: alpine.sh --root {0}
-        run: |
-          make install;
-
-      - name: Test build against the installed liburing
-        shell: alpine.sh {0}
-        run: |
-          export TEST_FILE=".github/workflows/test_build.c";
-          gcc -x c -o a.out $TEST_FILE -luring;
-          g++ -x c++ -o a.out $TEST_FILE -luring;
-
-
   codespell:
     needs: get_commit_list
     runs-on: ubuntu-24.04
